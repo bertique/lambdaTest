@@ -1,3 +1,4 @@
+language: node_js
 deploy:
   provider: lambda
   function_name: "lambdaTest"
@@ -5,4 +6,3 @@ deploy:
   role: "arn:aws:iam::319199529121:role/service-role/lambdaTest-role-jkb31pwg"
   runtime: "nodejs12.x"
   handler_name: "handler"
-  language: node_js
