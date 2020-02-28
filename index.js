@@ -1,10 +1,10 @@
 /*jshint esversion: 8 */
 
-let download = require('download');
+//let download = require('download');
 let simpleParser = require('mailparser').simpleParser;
 let cheerio = require('cheerio');
 let chromium = require('chrome-aws-lambda');
-let filenamifyUrl = require('filenamify-url');
+//let filenamifyUrl = require('filenamify-url');
 let aws = require("aws-sdk");
 
 const emailAssetsFolder = 'email_assets';
