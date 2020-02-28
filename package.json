@@ -1,0 +1,27 @@
+{
+  "name": "lambdatest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "aws-sdk": "^2.624.0",
+    "cheerio": "^1.0.0-rc.3",
+    "download": "^7.1.0",
+    "filenamify-url": "^2.1.1",
+    "mailparser": "^2.7.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bertique/lambdaTest.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bertique/lambdaTest/issues"
+  },
+  "homepage": "https://github.com/bertique/lambdaTest#readme"
+}
