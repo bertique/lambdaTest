@@ -18,7 +18,7 @@ exports.handler = async (event) => {
     
     let emailSubject = JSON.parse(firstRecord.Sns.Message).mail.commonHeaders.subject.replace(/\s/g, '').replace(/\W+/g, '');
 
-    let parsedEmail = await simpleParser(firstRecord.Sns.Message.content.replace(/(\\r\\n)/g,"\n"));
+    let parsedEmail = await simpleParser(JSON.parse(firstRecord.Sns.Message).content.replace(/(\\r\\n)/g,"\n"));
 
     //console.log(firstRecord.Sns.Message.content.replace(/(\\r\\n)/g,"\n"));
 
