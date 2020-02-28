@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
+    "chrome-aws-lambda": "^2.1.1",
     "download": "^7.1.0",
     "filenamify-url": "^2.1.1",
     "mailparser": "^2.7.7",
