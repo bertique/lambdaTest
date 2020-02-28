@@ -13,10 +13,10 @@ exports.handler = async (event) => {
     
     let firstRecord = event.Records[0];
 
-    console.log(firstRecord.Sns.Message.mail.commonHeaders.subject);
+    console.log(JSON.parse(firstRecord.Sns.Message).mail.commonHeaders.subject);
     console.log('JavaScript trigger function processed a request.');
     
-    let emailSubject = firstRecord.Sns.Message.mail.commonHeaders.subject.replace(/\s/g, '').replace(/\W+/g, '');
+    let emailSubject = JSON.parse(firstRecord.Sns.Message).mail.commonHeaders.subject.replace(/\s/g, '').replace(/\W+/g, '');
 
     let parsedEmail = await simpleParser(firstRecord.Sns.Message.content.replace(/(\\r\\n)/g,"\n"));
 
