@@ -39,7 +39,7 @@ exports.handler = async (event) => {
 
     // fs.writeFileSync(tempFolder+'/outbox/'+emailSubject+'.html', parsedEmailCheerio.html());
 
-    console.log(parsedEmailCheerio.html());
+    //console.log(parsedEmailCheerio.html());
 
     let buffer = null;
     let browser = null;
@@ -54,8 +54,12 @@ exports.handler = async (event) => {
   
       let page = await browser.newPage();
       await page.setContent(parsedEmailCheerio.html(), {waitUntil: 'load'});
-      
-      buffer = await page.screenshot({ type: "png" });
+      await page.setViewport({
+        width: 1024,
+        height: 768
+      });    
+
+      buffer = await page.screenshot({ type: "png", fullPage: false });
       //buffer = Buffer.from(b64string, "base64");
   
     } catch (error) {
