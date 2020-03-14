@@ -4,8 +4,13 @@ const simpleParser = require('mailparser').simpleParser;
 const cheerio = require('cheerio');
 const chromium = require('chrome-aws-lambda');
 const aws = require("aws-sdk");
+const { Octokit } = require("@octokit/rest");
 
 const s3 = new aws.S3();
+const TOKEN = process.env.GITHUB_TOKEN; // token needs "repo" scope
+const octokit = new Octokit({
+  auth: TOKEN
+});
 
 exports.handler = async (event) => {
     
@@ -79,15 +84,19 @@ exports.handler = async (event) => {
 
     // Create post
 
-    const post = `---`+
-    `title:  "${emailSubject}"`+
-    `metadate: "hide"`+
-    `categories: [  ]`+
-    `image: "/assets/images/${screenshotPath_full}"`+
-    `thumbnail: "/assets/images/${screenshotPath}"`+
-    `htmlmail: ""`+
-    `---`+
-    `Post content`;
+    const post = `---\n`+
+    `title:  "${emailSubject}"\n`+
+    `metadate: "hide"\n`+
+    `categories: [  ]\n`+
+    `image: "/assets/images/${screenshotPath_full}"\n`+
+    `thumbnail: "/assets/images/${screenshotPath}"\n`+
+    `htmlmail: ""\n`+
+    `---\n`+
+    `Post content\n`;
+
+    // Create pull request
+
+    await createPullRequest(screenshot, screenshotPath, screenshot_full, screenshotPath_full, post, emailSubjectCompressed);
 
     const response = {
         statusCode: 200,
@@ -104,4 +113,129 @@ function uploadToS3(key, data) {
 
   const params = { Bucket: bucket, Key: key, Body: data, ContentType: 'image/jpeg', ACL: 'public-read' };
   s3.putObject(params).promise();
+}
+
+async function createPullRequest(screenshot, screenshotPath, screenshot_full, screenshotPath_full, post, postPath) {
+  const owner = "bertique";
+  const repo = "remote_test";
+  const branch = "master";
+
+  const {
+    data: [
+      {
+        sha: latestCommitSha,
+        commit: {
+          tree: { sha: latestCommitTreeSha }
+        }
+      }
+    ]
+  } = await octokit.repos.listCommits({
+    owner,
+    repo,
+    sha: branch,
+    per_page: 1
+  });
+
+  console.log(
+    "Last commit sha on %s branch: %s (tree: %s)",
+    branch,
+    latestCommitSha,
+    latestCommitTreeSha
+  );
+
+  const {
+    data: { sha: newBlobSha }
+  } = await octokit.request("POST /repos/:owner/:repo/git/blobs", {
+    owner,
+    repo,
+    content: Buffer.from(screenshot).toString("base64"),
+    encoding: "base64"
+  });
+
+  const {
+    data: { sha: newBlobSha2 }
+  } = await octokit.request("POST /repos/:owner/:repo/git/blobs", {
+    owner,
+    repo,
+    content: Buffer.from(screenshot_full).toString("base64"),
+    encoding: "base64"
+  });
+
+  const {
+    data: { sha: newBlobSha3 }
+  } = await octokit.request("POST /repos/:owner/:repo/git/blobs", {
+    owner,
+    repo,
+    content: Buffer.from(post).toString("base64"),
+    encoding: "base64"
+  });
+
+  console.log("Blobs created");
+
+  const {
+    data: { sha: newTreeSha }
+  } = await octokit.request("POST /repos/:owner/:repo/git/trees", {
+    owner,
+    repo,
+    base_tree: latestCommitTreeSha,
+    tree: [
+      {
+        path: `assets/images/${screenshotPath}`,
+        mode: "100644",
+        sha: newBlobSha
+      },
+      {
+        path: `assets/images/${screenshotPath_full}`,
+        mode: "100644",
+        sha: newBlobSha2
+      },
+      {
+        path: `_posts/${postPath}`,
+        mode: "100644",
+        sha: newBlobSha3
+      }
+    ]
+  });
+
+  console.log("tree created: %s", newTreeSha);
+
+  const { data: commit } = await octokit.git.createCommit({
+    owner,
+    repo,
+    message: `Adding three files for new post on ${postPath}`,
+    tree: newTreeSha,
+    parents: [latestCommitSha]
+  });
+
+  console.log(`commit created`);
+
+  let ref = `heads/${postPath}`;
+  const { data: listRefsResponse } = await octokit.git.listMatchingRefs({
+    owner,
+    repo,
+    ref
+  });
+
+  if(listRefsResponse.length == 0) {
+    ref = `refs/heads/${postPath}`;
+    const { data: createRefsResponse } = await octokit.git.createRef({
+      owner,
+      repo,
+      ref,
+      sha: commit.sha
+    });
+  }
+
+  console.log(`branch created`);
+
+  const { data: createPullRequestResponse } = await octokit.pulls.create({
+    owner,
+    repo,
+    title: `Adding post for ${postPath}`,
+    head: `${owner}:${postPath}`,
+    base: branch,
+    body: "Update post content and merge to post"
+  });
+
+  console.log(`Pull request created`);
 }

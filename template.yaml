@@ -14,3 +14,6 @@ Resources:
       Role: 'arn:aws:iam::319199529121:role/service-role/lambdaTest-role-jkb31pwg'
       Layers:    
         - 'arn:aws:lambda:us-east-1:764866452798:layer:chrome-aws-lambda:10'
+      Environment:
+        Variables:
+          GITHUB_TOKEN: "default"

@@ -16,7 +16,9 @@
                 "-d",
                 "5678",
                 "-e",
-                "${workspaceFolder}/testAssets/sns_email.json"
+                "${workspaceFolder}/testAssets/sns_email2.json",
+                "--env-vars",
+                "${workspaceFolder}/env.json"
             ],
             "isBackground": true,
             "problemMatcher": {
