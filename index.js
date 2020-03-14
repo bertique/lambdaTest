@@ -1,27 +1,32 @@
 /*jshint esversion: 8 */
 
-let download = require('download');
-let simpleParser = require('mailparser').simpleParser;
-let cheerio = require('cheerio');
-let chromium = require('chrome-aws-lambda');
-let filenamifyUrl = require('filenamify-url');
-let aws = require("aws-sdk");
+const simpleParser = require('mailparser').simpleParser;
+const cheerio = require('cheerio');
+const chromium = require('chrome-aws-lambda');
+const aws = require("aws-sdk");
 
-const emailAssetsFolder = 'email_assets';
+const s3 = new aws.S3();
 
 exports.handler = async (event) => {
     
-    let firstRecord = event.Records[0];
+    const firstRecord = event.Records[0];
 
-    console.log(JSON.parse(firstRecord.Sns.Message).mail.commonHeaders.subject);
     console.log('JavaScript trigger function processed a request.');
+
+    const message = JSON.parse(firstRecord.Sns.Message);
+
+    const emailSubject = message.mail.commonHeaders.subject.replace("Fwd: ", '');
+    const emailSubjectCompressed = emailSubject.replace(/\s/g, '').replace(/\W+/g, '')
+    const emailTo = message.mail.destination[0];
+    const emailFrom = message.mail.source;
     
-    let emailSubject = JSON.parse(firstRecord.Sns.Message).mail.commonHeaders.subject.replace(/\s/g, '').replace(/\W+/g, '');
+    console.log("Subject: %s", emailSubject);
+    console.log("From %s, To: %s", emailFrom, emailTo);
 
-    let parsedEmail = await simpleParser(JSON.parse(firstRecord.Sns.Message).content.replace(/(\\r\\n)/g,"\n"));
+    const screenshotPath = `${emailSubjectCompressed}.png`;
+    const screenshotPath_full = `${emailSubjectCompressed}_full.png`;
 
-    //console.log(firstRecord.Sns.Message.content.replace(/(\\r\\n)/g,"\n"));
-
+    let parsedEmail = await simpleParser(message.content.replace(/(\\r\\n)/g,"\n"));
     let parsedEmailCheerio = cheerio.load(parsedEmail.html);
 
     // parsedEmailCheerio('img').each(function(i, image) {
@@ -36,14 +41,9 @@ exports.handler = async (event) => {
     //     cheerio(this).attr('href','./').css('cursor', 'default').css('pointer-events', 'none');
     // });
 
-
-    // fs.writeFileSync(tempFolder+'/outbox/'+emailSubject+'.html', parsedEmailCheerio.html());
-
-    //console.log(parsedEmailCheerio.html());
-
-    let buffer = null;
     let browser = null;
-  
+    let screenshot, screenshot_full = null;
+    
     try {
       browser = await chromium.puppeteer.launch({
         args: chromium.args,
@@ -59,8 +59,8 @@ exports.handler = async (event) => {
         height: 768
       });    
 
-      buffer = await page.screenshot({ type: "png", fullPage: false });
-      //buffer = Buffer.from(b64string, "base64");
+      screenshot = await page.screenshot({ type: "png", fullPage: false });
+      screenshot_full = await page.screenshot({ type: "png", fullPage: true });
   
     } catch (error) {
       console.log(error);
@@ -70,12 +70,24 @@ exports.handler = async (event) => {
       }
     }
 
-    const s3 = new aws.S3();
-    const bucket = "lambda-test-1423232123232";
-    const key = emailSubject+".png";
+    // Add to S3 bucket
 
-    const params = { Bucket: bucket, Key: key, Body: buffer, ContentType: 'image/jpeg', ACL: 'public-read' };
-    await s3.putObject(params).promise();
+    uploadToS3(screenshotPath, screenshot);
+    uploadToS3(screenshotPath_full, screenshot_full);
+
+    console.log("Added to S3");
+
+    // Create post
+
+    const post = `---`+
+    `title:  "${emailSubject}"`+
+    `metadate: "hide"`+
+    `categories: [  ]`+
+    `image: "/assets/images/${screenshotPath_full}"`+
+    `thumbnail: "/assets/images/${screenshotPath}"`+
+    `htmlmail: ""`+
+    `---`+
+    `Post content`;
 
     const response = {
         statusCode: 200,
@@ -86,3 +98,10 @@ exports.handler = async (event) => {
     };
     return response;
 };
+
+function uploadToS3(key, data) {
+  const bucket = "lambda-test-1423232123232";
+
+  const params = { Bucket: bucket, Key: key, Body: data, ContentType: 'image/jpeg', ACL: 'public-read' };
+  s3.putObject(params).promise();
+}

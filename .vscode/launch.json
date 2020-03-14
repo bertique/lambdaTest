@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "NodeJS: Remote Attach",
+            "type": "node",
+            "request": "attach",
+            "preLaunchTask": "Debug NodeJS Lambda Function",
+            "port": 5678,
+            "address": "localhost",
+            "localRoot": "${workspaceFolder}/",
+            "remoteRoot": "/var/task",
+            "protocol": "inspector",
+            "skipFiles": ["/var/runtime/node_modules/**/*.js", "<node_internals>/**/*.js"],
+            "stopOnEntry": false
+        }
+    ]
+}
