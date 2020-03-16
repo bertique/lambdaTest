@@ -196,7 +196,7 @@ async function createPullRequest(screenshot, screenshotPath, screenshot_full, sc
         sha: newBlobSha2
       },
       {
-        path: `_posts/${postPath}`,
+        path: `_posts/${new Date().toISOString().split("T")[0]}-${postPath}.md`,
         mode: "100644",
         sha: newBlobSha3
       }
