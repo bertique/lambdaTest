@@ -12,6 +12,12 @@ const octokit = new Octokit({
   auth: TOKEN
 });
 
+const bucket = "lambda-test-1423232123232";
+
+const owner = "bertique";
+const repo = "remote_test";
+const imagePath = "/assets/images/posts/";
+
 exports.handler = async (event) => {
     
     const firstRecord = event.Records[0];
@@ -32,7 +38,8 @@ exports.handler = async (event) => {
     const screenshotPath_full = `${emailSubjectCompressed}_full.png`;
 
     let parsedEmail = await simpleParser(message.content.replace(/(\\r\\n)/g,"\n"));
-    let parsedEmailCheerio = cheerio.load(parsedEmail.html);
+    let plainTextEmail = parsedEmail.text.replace(/<http.*>/g, '').replace(/[image:*.]/g, '');
+    let parsedEmailCheerio = cheerio.load(parsedEmail.html);    
 
     // parsedEmailCheerio('img').each(function(i, image) {
         
@@ -79,6 +86,7 @@ exports.handler = async (event) => {
 
     uploadToS3(screenshotPath, screenshot);
     uploadToS3(screenshotPath_full, screenshot_full);
+    uploadToS3(`${emailSubjectCompressed}.txt`, message.content.replace(/(\\r\\n)/g,"\n"), "text/html");
 
     console.log("Added to S3");
 
@@ -88,11 +96,10 @@ exports.handler = async (event) => {
     `title:  "${emailSubject}"\n`+
     `metadate: "hide"\n`+
     `categories: [  ]\n`+
-    `image: "/assets/images/${screenshotPath_full}"\n`+
-    `thumbnail: "/assets/images/${screenshotPath}"\n`+
-    `htmlmail: ""\n`+
+    `image: "${imagePath}${screenshotPath_full}"\n`+
+    `thumbnail: "${imagePath}${screenshotPath}"\n`+
     `---\n`+
-    `Post content\n`;
+    `${plainTextEmail}\n`;
 
     // Create pull request
 
@@ -108,16 +115,15 @@ exports.handler = async (event) => {
     return response;
 };
 
-function uploadToS3(key, data) {
-  const bucket = "lambda-test-1423232123232";
-
-  const params = { Bucket: bucket, Key: key, Body: data, ContentType: 'image/jpeg', ACL: 'public-read' };
+function uploadToS3(key, data, contentType) {
+  if(contentType == null) {
+    contentType = 'image/jpeg';
+  }
+  const params = { Bucket: bucket, Key: key, Body: data, ContentType: contentType}; //, ACL: 'public-read' };
   s3.putObject(params).promise();
 }
 
 async function createPullRequest(screenshot, screenshotPath, screenshot_full, screenshotPath_full, post, postPath) {
-  const owner = "bertique";
-  const repo = "remote_test";
   const branch = "master";
 
   const {
@@ -180,12 +186,12 @@ async function createPullRequest(screenshot, screenshotPath, screenshot_full, sc
     base_tree: latestCommitTreeSha,
     tree: [
       {
-        path: `assets/images/${screenshotPath}`,
+        path: `${imagePath}${screenshotPath}`,
         mode: "100644",
         sha: newBlobSha
       },
       {
-        path: `assets/images/${screenshotPath_full}`,
+        path: `${imagePath}${screenshotPath_full}`,
         mode: "100644",
         sha: newBlobSha2
       },
