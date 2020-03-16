@@ -16,7 +16,7 @@ const bucket = "lambda-test-1423232123232";
 
 const owner = "bertique";
 const repo = "remote_test";
-const imagePath = "/assets/images/posts/";
+const imagePath = "assets/images/posts/";
 
 exports.handler = async (event) => {
     
@@ -96,8 +96,8 @@ exports.handler = async (event) => {
     `title:  "${emailSubject}"\n`+
     `metadate: "hide"\n`+
     `categories: [  ]\n`+
-    `image: "${imagePath}${screenshotPath_full}"\n`+
-    `thumbnail: "${imagePath}${screenshotPath}"\n`+
+    `image: "/${imagePath}${screenshotPath_full}"\n`+
+    `thumbnail: "/${imagePath}${screenshotPath}"\n`+
     `---\n`+
     `${plainTextEmail}\n`;
 
