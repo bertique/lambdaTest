@@ -6,3 +6,5 @@ deploy:
   role: "arn:aws:iam::319199529121:role/service-role/lambdaTest-role-jkb31pwg"
   runtime: "nodejs12.x"
   handler_name: "handler"
+  timeout: 60
+  memory_size: 1024
