@@ -40,7 +40,7 @@ exports.handler = async (event) => {
     let parsedEmail = await simpleParser(message.content.replace(/(\\r\\n)/g,"\n"));
     let plainTextEmail = parsedEmail.text
                             .replace(/<http.*>/g, '')
-                            .replace(/[image:*.]/g, '')
+                            .replace(/\[image:*.\]/g, '')
                             .replace(/b.michael.dick@gmail.com/g, 'info@messagefromtheceo.com');                            
     let parsedEmailCheerio = cheerio.load(parsedEmail.html);    
 
@@ -86,10 +86,10 @@ exports.handler = async (event) => {
     }
 
     // Add to S3 bucket
-
-    uploadToS3(screenshotPath, screenshot);
-    uploadToS3(screenshotPath_full, screenshot_full);
-    uploadToS3(`${emailSubjectCompressed}.txt`, message.content.replace(/(\\r\\n)/g,"\n"), "text/html");
+    const dateString = new Date().toISOString().split("T")[0];
+    uploadToS3(`${dateString}-${screenshotPath}`, screenshot);
+    uploadToS3(`${dateString}-${screenshotPath_full}`, screenshot_full);
+    uploadToS3(`${dateString}-${emailSubjectCompressed}.txt`, message.content.replace(/(\\r\\n)/g,"\n"), "text/html");
 
     console.log("Added to S3");
 
@@ -106,7 +106,7 @@ exports.handler = async (event) => {
 
     // Create pull request
 
-    await createPullRequest(screenshot, screenshotPath, screenshot_full, screenshotPath_full, post, emailSubjectCompressed);
+    await createPullRequest(screenshot, screenshotPath, screenshot_full, screenshotPath_full, post, `${dateString}-${emailSubjectCompressed}`);
 
     const response = {
         statusCode: 200,
@@ -199,7 +199,7 @@ async function createPullRequest(screenshot, screenshotPath, screenshot_full, sc
         sha: newBlobSha2
       },
       {
-        path: `_posts/${new Date().toISOString().split("T")[0]}-${postPath}.md`,
+        path: `_posts/${postPath}.md`,
         mode: "100644",
         sha: newBlobSha3
       }
