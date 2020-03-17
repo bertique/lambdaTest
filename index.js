@@ -86,7 +86,7 @@ exports.handler = async (event) => {
     }
 
     // Add to S3 bucket
-    const dateString = new Date().toISOString().split(".")[0];
+    const dateString = new Date().toISOString().split("T")[0];
     uploadToS3(`${dateString}-${screenshotPath}`, screenshot);
     uploadToS3(`${dateString}-${screenshotPath_full}`, screenshot_full);
     uploadToS3(`${dateString}-${emailSubjectCompressed}.txt`, message.content.replace(/(\\r\\n)/g,"\n"), "text/html");
