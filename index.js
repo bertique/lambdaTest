@@ -15,7 +15,7 @@ const octokit = new Octokit({
 const bucket = "lambda-test-1423232123232";
 
 const owner = "bertique";
-const repo = "remote_test";
+const repo = "messagefromtheceo";
 const imagePath = "assets/images/posts/";
 
 exports.handler = async (event) => {
