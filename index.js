@@ -99,6 +99,7 @@ exports.handler = async (event) => {
     const post = `---\n`+
     `title:  "${emailSubject}"\n`+
     `metadate: "hide"\n`+
+    `date: ${dateString} ${new Date().toISOString().split("T")[1].split('.')[0]}\n`+
     `categories: [  ]\n`+
     `image: "/${imagePath}${screenshotPath_full}"\n`+
     `thumbnail: "/${imagePath}${screenshotPath}"\n`+
