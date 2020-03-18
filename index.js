@@ -41,7 +41,7 @@ exports.handler = async (event) => {
     let plainTextEmail = parsedEmail.text
                             .replace(/<http.*>/g, '')
                             .replace(/\[image:[ \n].*\]/g, '')
-                            .replace(/\[http:.*\]/g, '')
+                            .replace(/\[http.*\]/g, '')
                             .replace(/b\.michael\.dick@gmail\.com/gi, 'info@messagefromtheceo.com');                            
     let parsedEmailCheerio = cheerio.load(parsedEmail.html);    
 
