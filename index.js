@@ -88,9 +88,9 @@ exports.handler = async (event) => {
 
     // Add to S3 bucket
     const dateString = new Date().toISOString().split("T")[0];
-    uploadToS3(`${dateString}-${screenshotPath}`, screenshot);
-    uploadToS3(`${dateString}-${screenshotPath_full}`, screenshot_full);
-    uploadToS3(`${dateString}-${emailSubjectCompressed}.txt`, message.content.replace(/(\\r\\n)/g,"\n"), "text/html");
+    await uploadToS3(`${dateString}-${screenshotPath}`, screenshot);
+    await uploadToS3(`${dateString}-${screenshotPath_full}`, screenshot_full);
+    await uploadToS3(`${dateString}-${emailSubjectCompressed}.txt`, message.content.replace(/(\\r\\n)/g,"\n"), "text/html");
 
     console.log("Added to S3");
 
@@ -120,12 +120,12 @@ exports.handler = async (event) => {
     return response;
 };
 
-function uploadToS3(key, data, contentType) {
+async function uploadToS3(key, data, contentType) {
   if(contentType == null) {
     contentType = 'image/jpeg';
   }
   const params = { Bucket: bucket, Key: key, Body: data, ContentType: contentType}; //, ACL: 'public-read' };
-  s3.putObject(params).promise();
+  await s3.putObject(params).promise();
 }
 
 async function createPullRequest(screenshot, screenshotPath, screenshot_full, screenshotPath_full, post, postPath) {
