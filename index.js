@@ -101,8 +101,8 @@ exports.handler = async (event) => {
     `metadate: "hide"\n`+
     `date: ${dateString} ${new Date().toISOString().split("T")[1].split('.')[0]}\n`+
     `categories: [  ]\n`+
-    `image: "/${imagePath}${screenshotPath_full}"\n`+
-    `thumbnail: "/${imagePath}${screenshotPath}"\n`+
+    `image: "/${imagePath}${dateString}-${screenshotPath_full}"\n`+
+    `thumbnail: "/${imagePath}${dateString}-${screenshotPath}"\n`+
     `---\n`+
     `${plainTextEmail}\n`;
 
