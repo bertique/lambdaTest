@@ -108,7 +108,7 @@ exports.handler = async (event) => {
 
     // Create pull request
 
-    await createPullRequest(screenshot, screenshotPath, screenshot_full, screenshotPath_full, post, `${dateString}-${emailSubjectCompressed}`);
+    await createPullRequest(screenshot, `${dateString}-${screenshotPath}`, screenshot_full, `${dateString}-${screenshotPath_full}`, post, `${dateString}-${emailSubjectCompressed}`);
 
     const response = {
         statusCode: 200,
