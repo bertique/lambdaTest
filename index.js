@@ -27,7 +27,7 @@ exports.handler = async (event) => {
     const message = JSON.parse(firstRecord.Sns.Message);
 
     const emailSubject = message.mail.commonHeaders.subject.replace("Fwd: ", '').replace("Fw: ", '');
-    const emailSubjectCompressed = emailSubject.replace(/\s/g, '').replace(/\W+/g, '')
+    const emailSubjectCompressed = emailSubject.replace(/\s/g, '').replace(/\W+/g, '');
     const emailTo = message.mail.destination[0];
     const emailFrom = message.mail.source;
     
@@ -42,7 +42,8 @@ exports.handler = async (event) => {
                             .replace(/<http.*>/g, '')
                             .replace(/\[image:[ \n].*\]/g, '')
                             .replace(/\[http.*\]/g, '')
-                            .replace(/b\.michael\.dick@gmail\.com/gi, 'info@messagefromtheceo.com');                            
+                            .replace(/b\.michael\.dick@gmail\.com/gi, 'info@messagefromtheceo.com')
+                            .replace(/[\r\n]{3,}/g, '\r\n');                        
     let parsedEmailCheerio = cheerio.load(parsedEmail.html);    
 
     // parsedEmailCheerio('img').each(function(i, image) {
