@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@octokit/rest": "^18.0.9",
-    "cheerio": "^1.0.0-rc.3",
+    "@octokit/rest": "^18.0.12",
+    "cheerio": "^1.0.0-rc.5",
     "mailparser": "^2.8.1"
   },
   "devDependencies": {},
