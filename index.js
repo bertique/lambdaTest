@@ -3,7 +3,8 @@
 const simpleParser = require('mailparser').simpleParser;
 const cheerio = require('cheerio');
 const chromium = require('chrome-aws-lambda');
-const aws = require("aws-sdk");
+const jimp = require('jimp');
+const aws = require('aws-sdk');
 const { Octokit } = require("@octokit/rest");
 
 const s3 = new aws.S3();
@@ -89,6 +90,13 @@ exports.handler = async (event) => {
       }
     }
 
+    try {
+      const image = await jimp.read(screenshot);     
+      screenshot = await image.autocrop().quality(100).getBufferAsync(jimp.MIME_PNG);    
+    } catch (error) {
+      console.log(error);
+    }
+     
     if(!DISABLE_S3) {
       // Add to S3 bucket
       const dateString = new Date().toISOString().split("T")[0];
