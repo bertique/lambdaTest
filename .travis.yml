@@ -8,3 +8,4 @@ deploy:
   handler_name: "handler"
   timeout: 60
   memory_size: 1024
+  edge: true # opt in to dpl v2
