@@ -8,6 +8,8 @@ const { Octokit } = require("@octokit/rest");
 
 const s3 = new aws.S3();
 const TOKEN = process.env.GITHUB_TOKEN; // token needs "repo" scope
+const DISABLE_S3 = process.env.DISABLE_S3 === "true";
+const DISABLE_GIT = process.env.DISABLE_GIT === "true";
 const octokit = new Octokit({
   auth: TOKEN
 });
@@ -87,29 +89,38 @@ exports.handler = async (event) => {
       }
     }
 
-    // Add to S3 bucket
-    const dateString = new Date().toISOString().split("T")[0];
-    await uploadToS3(`${dateString}-${screenshotPath}`, screenshot);
-    await uploadToS3(`${dateString}-${screenshotPath_full}`, screenshot_full);
-    await uploadToS3(`${dateString}-${emailSubjectCompressed}.txt`, message.content.replace(/(\\r\\n)/g,"\n"), "text/html");
+    if(!DISABLE_S3) {
+      // Add to S3 bucket
+      const dateString = new Date().toISOString().split("T")[0];
+      await uploadToS3(`${dateString}-${screenshotPath}`, screenshot);
+      await uploadToS3(`${dateString}-${screenshotPath_full}`, screenshot_full);
+      await uploadToS3(`${dateString}-${emailSubjectCompressed}.txt`, message.content.replace(/(\\r\\n)/g,"\n"), "text/html");
 
-    console.log("Added to S3");
+      console.log("Added to S3");
+    } else {
+      console.log("Skipping S3");
+    }    
+    return;
+    if(!DISABLE_GIT) {    
+      // Create post
 
-    // Create post
+      const post = `---\n`+
+      `title:  "${emailSubject}"\n`+
+      `metadate: "hide"\n`+
+      `date: ${dateString} ${new Date().toISOString().split("T")[1].split('.')[0]}\n`+
+      `categories: [  ]\n`+
+      `image: "/${imagePath}${dateString}-${screenshotPath_full}"\n`+
+      `thumbnail: "/${imagePath}${dateString}-${screenshotPath}"\n`+
+      `---\n`+
+      `${plainTextEmail}\n`;
 
-    const post = `---\n`+
-    `title:  "${emailSubject}"\n`+
-    `metadate: "hide"\n`+
-    `date: ${dateString} ${new Date().toISOString().split("T")[1].split('.')[0]}\n`+
-    `categories: [  ]\n`+
-    `image: "/${imagePath}${dateString}-${screenshotPath_full}"\n`+
-    `thumbnail: "/${imagePath}${dateString}-${screenshotPath}"\n`+
-    `---\n`+
-    `${plainTextEmail}\n`;
+      // Create pull request
 
-    // Create pull request
+      await createPullRequest(screenshot, `${dateString}-${screenshotPath}`, screenshot_full, `${dateString}-${screenshotPath_full}`, post, `${dateString}-${emailSubjectCompressed}`);
 
-    await createPullRequest(screenshot, `${dateString}-${screenshotPath}`, screenshot_full, `${dateString}-${screenshotPath_full}`, post, `${dateString}-${emailSubjectCompressed}`);
+    } else {
+      console.log("Skipping Git");
+    }  
 
     const response = {
         statusCode: 200,
