@@ -92,7 +92,7 @@ exports.handler = async (event) => {
 
     try {
       const image = await jimp.read(screenshot);     
-      screenshot = await image.autocrop().quality(100).getBufferAsync(jimp.MIME_PNG);    
+      screenshot = await image.autocrop({ cropOnlyFrames: false, cropSymmetric: false, leaveBorder: 5 }).quality(100).getBufferAsync(jimp.MIME_PNG);    
     } catch (error) {
       console.log(error);
     }
